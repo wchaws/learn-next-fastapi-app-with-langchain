@@ -11,4 +11,4 @@ class ToolInvocation(BaseModel):
     toolCallId: str
     toolName: str
     args: dict
-    result: dict
+    result: dict | float | str | int | bool
