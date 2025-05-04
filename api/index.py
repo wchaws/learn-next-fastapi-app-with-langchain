@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Query
 from fastapi.responses import StreamingResponse
 from openai import OpenAI
-from langchain_core.messages import AIMessageChunk
+from langchain_core.messages import AIMessageChunk, ToolMessage
 from .utils.prompt import ClientMessage, convert_to_openai_messages
 from .utils.tools import add, get_current_weather, multiply
 from langchain_community.adapters.openai import (
@@ -162,7 +162,7 @@ def langchain_stream_text(messages: List[ClientMessage], protocol: str = 'data')
             gathered += chunk
 
             for content in chunk.content:
-                p(content)
+                p("CHUNK", content)
                 if not isinstance(content, dict):
                     continue
                 if content.get("type") == "text":
@@ -171,7 +171,7 @@ def langchain_stream_text(messages: List[ClientMessage], protocol: str = 'data')
                     pass
         
         for tool_call in gathered.tool_calls:
-            p(tool_call)
+            p("TOOL CALL", tool_call)
             
             yield "9:" + json.dumps({
                 "toolCallId": tool_call["id"],
@@ -181,13 +181,24 @@ def langchain_stream_text(messages: List[ClientMessage], protocol: str = 'data')
 
 
             if func := available_tools.get(tool_call["name"]):
+                # Way 1: Input is a tool call object
+                # result: ToolMessage = func.invoke(input=tool_call)
+
+                # yield "a:" + json.dumps({
+                #     "toolCallId": tool_call["id"],
+                #     "toolName": tool_call["name"],
+                #     "args": tool_call["args"],
+                #     "result": result.content,
+                # }) + "\n"
+
+                # Way 2: Input is a tool call object
                 result = func.invoke(input=tool_call["args"])
-                
+
                 yield "a:" + json.dumps({
                     "toolCallId": tool_call["id"],
                     "toolName": tool_call["name"],
                     "args": tool_call["args"],
-                    "result": result
+                    "result": result,
                 }) + "\n"
 
         

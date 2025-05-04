@@ -7,7 +7,7 @@ import { GeistMono } from 'geist/font/mono';
 export default function Page() {
   const { messages, input, handleSubmit, handleInputChange, status } = useChat({
     streamProtocol: 'data',
-    maxSteps: 3,
+    maxSteps: 5,
   });
 
   return (
