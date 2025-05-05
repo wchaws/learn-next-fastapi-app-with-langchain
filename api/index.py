@@ -18,6 +18,9 @@ from langchain_core.messages.utils import (
 )
 
 
+def p(*msg):
+    print(*msg, flush=True)
+
 load_dotenv(".env.local")
 
 app = FastAPI()
@@ -55,21 +58,9 @@ def stream_text(messages: List[ClientMessage], protocol: str = 'data'):
         tools=[{
             "type": "function",
             "function": {
-                "name": "get_current_weather",
-                "description": "Get the current weather in a given location",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "location": {
-                            "type": "string",
-                            "description": "The city and state, e.g. San Francisco, CA",
-                        },
-                        "unit": {
-                            "type": "string",
-                            "enum": ["celsius", "fahrenheit"]},
-                    },
-                    "required": ["location", "unit"],
-                },
+                "name": get_current_weather.name,
+                "description": get_current_weather.description,
+                "parameters": get_current_weather.args_schema.model_json_schema(),
             },
         }]
     )
@@ -105,8 +96,7 @@ def stream_text(messages: List[ClientMessage], protocol: str = 'data'):
                             args=tool_call["arguments"])
 
                     for tool_call in draft_tool_calls:
-                        tool_result = available_tools[tool_call["name"]](
-                            (tool_call["arguments"]))
+                        tool_result = available_tools[tool_call["name"]].invoke(input=json.loads(tool_call["arguments"]))
 
                         yield 'a:{{"toolCallId":"{id}","toolName":"{name}","args":{args},"result":{result}}}\n'.format(
                             id=tool_call["id"],
@@ -143,8 +133,6 @@ def stream_text(messages: List[ClientMessage], protocol: str = 'data'):
                     completion=completion_tokens
                 )
 
-def p(*msg):
-    print(*msg, flush=True)
 
 
 def langchain_stream_text(messages: List[ClientMessage], protocol: str = 'data'):
