@@ -1,10 +1,11 @@
 import random
 from typing import Annotated
 from langchain.tools import tool
+import requests
 
 
 @tool
-def get_current_weather(
+def get_current_weather2(
     location: Annotated[str, "The city and state, e.g. San Francisco, CA"],
     unit: Annotated[str, "The unit of temperature"] = "fahrenheit",
 ):
@@ -19,6 +20,20 @@ def get_current_weather(
         "unit": unit,
         "location": location,
     }
+
+
+@tool
+def get_current_weather(
+    latitude: Annotated[float, "The latitude of the location"],
+    longitude: Annotated[float, "The longitude of the location"],
+):
+    """Get the current weather in a given location latitude and longitude"""
+
+    res = requests.get(
+        f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&current=temperature_2m&timezone=auto"
+    )
+
+    return res.json()
 
 
 @tool
