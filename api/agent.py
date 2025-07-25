@@ -1,3 +1,4 @@
+import uuid
 import requests
 from typing import Annotated
 from dotenv import load_dotenv
@@ -9,6 +10,9 @@ from strands_tools import calculator
 
 from .utils.schemas import (
     ChatRequest,
+    format_finish_message,
+    format_finish_step,
+    format_start_step,
     format_text_part,
     format_tool_call,
     format_tool_call_delta,
@@ -97,17 +101,26 @@ class AgentStreamer:
                     yield format_tool_call_delta(tool_id, args_delta)
 
             message = event.get("message")
-            if message and message["role"] == "user":
-                content = message["content"]
-                for each in content:
-                    tool_result_dict = each.get("toolResult")
-                    if tool_result_dict:
-                        tool_id = tool_result_dict.get("toolUseId")
-                        result = tool_result_dict.get("content", [{"text": ""}])[0][
-                            "text"
-                        ]
+            if message:
+                if message["role"] == "user":
+                    content = message["content"]
+                    for each in content:
+                        tool_result_dict = each.get("toolResult")
+                        if tool_result_dict:
+                            tool_id = tool_result_dict.get("toolUseId")
+                            result = tool_result_dict.get("content", [{"text": ""}])[0][
+                                "text"
+                            ]
 
-                        yield format_tool_result(tool_id, result)
+                            yield format_tool_result(tool_id, result)
+
+            evt = event.get("event", {})
+
+            if "messageStart" in evt:
+                yield format_start_step(str(uuid.uuid4()))
+
+            if "messageStop" in evt:
+                yield format_finish_step("stop", 100, 100)
 
 
 @app.post("/api/chat")
