@@ -3,16 +3,18 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "fastapi-dev": "python3 -m uvicorn api.index:app --reload",
+    "fastapi-langchain-dev": "uv run uvicorn api.index:app --port 2333 --reload",
+    "fastapi-strands-dev": "uv run uvicorn api.agent:app --port 2333 --reload",
     "next-dev": "next dev",
-    "dev": "concurrently \"npm run next-dev\" \"npm run fastapi-dev\"",
+    "dev:strands": "concurrently \"npm run next-dev\" \"npm run fastapi-strands-dev\"",
+    "dev:langchain": "concurrently \"npm run next-dev\" \"npm run fastapi-langchain-dev\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
-    "@ai-sdk/ui-utils": "1.2.8",
-    "@ai-sdk/react": "1.2.9",
+    "@ai-sdk/ui-utils": "1.2.11",
+    "@ai-sdk/react": "1.2.12",
     "ai": "4.3.9",
     "geist": "^1.3.1",
     "next": "latest",

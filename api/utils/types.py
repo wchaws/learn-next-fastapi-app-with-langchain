@@ -10,5 +10,5 @@ class ClientAttachment(BaseModel):
 class ToolInvocation(BaseModel):
     toolCallId: str
     toolName: str
-    args: dict
+    args: dict | None
     result: dict | float | str | int | bool
